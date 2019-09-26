@@ -1,0 +1,41 @@
+on boot
+    chown system system /proc/touchpanel/gesture_enable
+    chmod 0660 /proc/touchpanel/gesture_enable
+
+on property:init.svc.vendor.cnss_diag=running
+    stop vendor.cnss_diag
+
+on property:init.svc.vendor.ipacm-diag=running
+    stop vendor.ipacm-diag
+
+on property:init.svc.citsensor-hal-1-1=running
+    stop citsensor-hal-1-1
+
+on property:init.svc.vendor.misys=running
+    stop vendor.misys
+
+on property:init.svc.vendor.misys@2.0=running
+    stop vendor.misys@2.0
+
+on property:init.svc.thermal-engine=running
+    stop thermal-engine
+
+on property:sys.boot_completed=1
+    #write /sys/class/thermal/thermal_message/sconfig 10
+    #exec - root -- /system/bin/tweaks.sh
+
+on post-fs
+    exec - root -- /system/bin/rw-vendor.sh
+    exec - root -- /system/bin/rw-system.sh
+
+on charger
+    start thermal-engine2
+
+service thermal-engine2 /system/bin/thermal-engine
+   class main
+   user root
+   socket thermal-send-client stream 0666 system system
+   socket thermal-recv-client stream 0660 system system
+   socket thermal-recv-passive-client stream 0666 system system
+   socket thermal-send-rule stream 0660 system system
+   group root
